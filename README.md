@@ -27,4 +27,4 @@ npx tsc -w
 php -S localhost:8080
 ```
 
-Next go to [index.php](http://localhost:8080/index.php) in your favorite browser
+Next go to http://localhost:8080/index.php in your favorite browser
