@@ -2,17 +2,44 @@ import { Grid } from "./Grid.js";
 
 export class DomGrid {
 
+    /** @type {Grid} */
+    grid;
+
     /** @type {HTMLTableElement} */
-    static tableElement = document.querySelector("#grid");
+    tableElement;
+
+    /** @type {number} */
+    clientX;
+
+    /** @type {number} */
+    clientY;
+
+    /** @type {boolean} */
+    canDrag;
+
+    /** @type {boolean} */
+    hasDrag;
 
     /**
      * 
      * @param {Grid} grid 
+     */
+    constructor(grid) {
+        this.grid = grid;
+        this.tableElement = document.querySelector("#grid");
+        this.clientX = 0;
+        this.clientY = 0;
+        this.canDrag = false;
+        this.hasDrag = false;
+        this.create();
+    }
+
+    /**
      * @returns {void}
      */
-    static create(grid) {
+    create() {
 
-        grid.getCells().forEach((row) => {
+        this.grid.getCells().forEach((row) => {
 
             const rowElement = document.createElement("tr");
             this.tableElement.append(rowElement);
@@ -30,7 +57,7 @@ export class DomGrid {
                 cellElement.dataset.x = cell.getX().toString();
                 cellElement.dataset.y = cell.getY().toString();
                 rowElement.append(cellElement);
-                
+
             });
 
         });
@@ -39,48 +66,37 @@ export class DomGrid {
 
     }
 
-    static listenEvents() {
-
-        /** @type {number} */
-        let clientX = 0;
-
-        /** @type {number} */
-        let clientY = 0;
-
-        /** @type {boolean} */
-        let canDrag = false;
-
-        /** @type {boolean} */
-        let hasDrag = false;
+    listenEvents() {
 
         this.tableElement.addEventListener("mousedown", (event) => {
 
             // Activation du drag de la table
-            canDrag = true;
+            this.canDrag = true;
 
             // Mise à jour des positions de départ
-            clientX = event.clientX - this.tableElement.offsetLeft;
-            clientY = event.clientY - this.tableElement.offsetTop;
+            this.clientX = event.clientX - this.tableElement.offsetLeft;
+            this.clientY = event.clientY - this.tableElement.offsetTop;
 
         });
 
         window.addEventListener("mouseup", () => {
 
-            if (!hasDrag) {
+            if (!this.hasDrag) {
+                
                 // L'event est considéré comme un click
             }
 
-            canDrag = false;
-            hasDrag = false;
+            this.canDrag = false;
+            this.hasDrag = false;
 
         });
 
         window.addEventListener("mousemove", (event) => {
 
-            if (canDrag) {
+            if (this.canDrag) {
 
                 // L'event ne sera pas considéré comme un click
-                hasDrag = true;
+                this.hasDrag = true;
 
                 // Limitation des positions de la table
                 const maxLeft = 0;
@@ -89,8 +105,8 @@ export class DomGrid {
                 const minTop = this.tableElement.parentElement.clientHeight - this.tableElement.clientHeight;
 
                 // Calcul de la nouvelle position
-                let left = event.clientX - clientX;
-                let top = event.clientY - clientY;
+                let left = event.clientX - this.clientX;
+                let top = event.clientY - this.clientY;
 
                 // Réajustement des positions
                 left = Math.min(maxLeft, left);
@@ -103,8 +119,8 @@ export class DomGrid {
                 this.tableElement.style.top = top + 'px';
 
                 // Mise à jour des positions de départ
-                clientX = event.clientX - this.tableElement.offsetLeft;
-                clientY = event.clientY - this.tableElement.offsetTop;
+                this.clientX = event.clientX - this.tableElement.offsetLeft;
+                this.clientY = event.clientY - this.tableElement.offsetTop;
 
             }
 
