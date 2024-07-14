@@ -9,7 +9,7 @@ export class Entity {
     #start;
 
     /** @type {{x: number | null, y: number | null}} */
-    #end;
+    #dest;
 
     /**
      * 
@@ -24,7 +24,7 @@ export class Entity {
             y: null
         };
 
-        this.#end = {
+        this.#dest = {
             x: null,
             y: null
         };
@@ -51,14 +51,14 @@ export class Entity {
      * @param {number} x 
      * @param {number} y 
      */
-    setEnd(x, y) {
-        this.#end.x = x;
-        this.#end.y = y;
+    setDest(x, y) {
+        this.#dest.x = x;
+        this.#dest.y = y;
     }
 
     /** @returns {{x: number, y: number}} */
-    getEnd() {
-        return this.#end;
+    getDest() {
+        return this.#dest;
     }
 
 }

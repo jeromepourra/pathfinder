@@ -89,22 +89,32 @@ export class DomGrid {
         // Double click pour définir le point de départ
         this.#tableElement.addEventListener("dblclick", (event) => {
 
-            if (event.target instanceof HTMLTableCellElement) {
-
-                const cellElement = event.target;
-                const cellX = parseInt(cellElement.dataset.x);
-                const cellY = parseInt(cellElement.dataset.y);
-                const cell = this.#grid.getCell(cellX, cellY);
-
-                if (cell.isWalkable()) {
-                    this.#removeEntity();
-                    this.#entity.setStart(cellX, cellY);
-                    this.#addEntity(cellElement);
-                } else {
-                    console.info(`Cell: ${cellX}:${cellY} is not walkable`);
-                }
-
+            if (!(event.target instanceof HTMLTableCellElement)) {
+                console.info("Dblclick must be on a cell");
+                return;
             }
+
+            const cellElement = event.target;
+            const startX = parseInt(cellElement.dataset.x);
+            const startY = parseInt(cellElement.dataset.y);
+            const startCell = this.#grid.getCell(startX, startY);
+
+            if (!startCell.isWalkable()) {
+                console.info(`Cell: ${startX}:${startY} is not walkable`);
+                return;
+            }
+
+            const { x: destX, y: destY } = this.#entity.getDest();
+
+            // Si le point de départ est le même que le point d'arrivée, on ne fait rien
+            if (startX === destX && startY === destY) {
+                console.info("Start cell is the same as the end cell");
+                return;
+            }
+
+            this.#removeEntity();
+            this.#entity.setStart(startX, startY);
+            this.#addEntity(cellElement);
 
         });
 
@@ -129,12 +139,6 @@ export class DomGrid {
 
                 const { x: startX, y: startY } = this.#entity.getStart();
 
-                // Si le point de départ n'est pas défini, on ne fait rien
-                if (startX === null || startY === null) {
-                    console.info("Start cell is not defined");
-                    return;
-                }
-
                 // Si le point de départ est le même que le point d'arrivée, on ne fait rien
                 if (startX === destX && startY === destY) {
                     console.info("Start cell is the same as the end cell");
@@ -142,14 +146,14 @@ export class DomGrid {
                 }
 
                 this.#removeDestination();
-                this.#entity.setEnd(destX, destY);
+                this.#entity.setDest(destX, destY);
                 this.#addDestination(cellElement);
 
             } else if (event.button === DomGrid.MOUSE_BUTTONS.left) {
 
                 // Activation du drag de la table
                 this.canDrag = true;
-    
+
                 // Mise à jour des positions de départ
                 this.clientX = event.clientX - this.#tableElement.offsetLeft;
                 this.clientY = event.clientY - this.#tableElement.offsetTop;
@@ -239,7 +243,7 @@ export class DomGrid {
 
     #removeDestination() {
 
-        let { x, y } = this.#entity.getEnd();
+        let { x, y } = this.#entity.getDest();
 
         if (x !== null || y !== null) {
             const cellElement = this.#tableElement.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
