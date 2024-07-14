@@ -11,25 +11,25 @@ export class DomGrid {
     };
 
     /** @type {Grid} */
-    #grid;
+    grid;
 
     /** @type {Entity} */
-    #entity;
+    entity;
 
     /** @type {HTMLTableElement} */
-    #tableElement;
+    tableElement;
 
     /** @type {number} */
-    #clientX;
+    clientX;
 
     /** @type {number} */
-    #clientY;
+    clientY;
 
     /** @type {boolean} */
-    #canDrag;
+    canDrag;
 
     /** @type {boolean} */
-    #hasDrag;
+    hasDrag;
 
     /**
      * 
@@ -37,49 +37,49 @@ export class DomGrid {
      * @param {Entity} entity
      */
     constructor(grid, entity) {
-        this.#grid = grid;
-        this.#entity = entity;
-        this.#tableElement = document.querySelector("#grid");
-        this.#clientX = 0;
-        this.#clientY = 0;
-        this.#canDrag = false;
-        this.#hasDrag = false;
-        this.#create();
+        this.grid = grid;
+        this.entity = entity;
+        this.tableElement = document.querySelector("#grid");
+        this.clientX = 0;
+        this.clientY = 0;
+        this.canDrag = false;
+        this.hasDrag = false;
+        this.create();
     }
 
     /**
      * @returns {void}
      */
-    #create() {
+    create() {
 
-        this.#grid.getCells().forEach((row) => {
+        this.grid.cells.forEach((row) => {
 
             const rowElement = document.createElement("tr");
-            this.#tableElement.append(rowElement);
+            this.tableElement.append(rowElement);
 
             row.forEach((cell) => {
 
                 const cellElement = document.createElement("td");
 
-                if (cell.isWalkable()) {
+                if (cell.walkable) {
                     cellElement.classList.add("walkable");
                 } else {
                     cellElement.classList.add("unwalkable");
                 }
 
-                cellElement.dataset.x = cell.getX().toString();
-                cellElement.dataset.y = cell.getY().toString();
+                cellElement.dataset.x = cell.x.toString();
+                cellElement.dataset.y = cell.y.toString();
                 rowElement.append(cellElement);
 
             });
 
         });
 
-        this.#listenEvents();
+        this.listenEvents();
 
     }
 
-    #listenEvents() {
+    listenEvents() {
 
         // Désactivation du menu contextuel du navigateur
         document.addEventListener("contextmenu", (event) => {
@@ -87,28 +87,38 @@ export class DomGrid {
         });
 
         // Double click pour définir le point de départ
-        this.#tableElement.addEventListener("dblclick", (event) => {
+        this.tableElement.addEventListener("dblclick", (event) => {
 
-            if (event.target instanceof HTMLTableCellElement) {
-
-                const cellElement = event.target;
-                const cellX = parseInt(cellElement.dataset.x);
-                const cellY = parseInt(cellElement.dataset.y);
-                const cell = this.#grid.getCell(cellX, cellY);
-
-                if (cell.isWalkable()) {
-                    this.#removeEntity();
-                    this.#entity.setStart(cellX, cellY);
-                    this.#addEntity(cellElement);
-                } else {
-                    console.info(`Cell: ${cellX}:${cellY} is not walkable`);
-                }
-
+            if (!(event.target instanceof HTMLTableCellElement)) {
+                console.info("Dblclick must be on a cell");
+                return;
             }
+
+            const cellElement = event.target;
+            const startX = parseInt(cellElement.dataset.x);
+            const startY = parseInt(cellElement.dataset.y);
+            const startCell = this.grid.getCell(startX, startY);
+
+            if (!startCell.walkable) {
+                console.info(`Cell: ${startX}:${startY} is not walkable`);
+                return;
+            }
+
+            const { x: destX, y: destY } = this.entity.dest;
+
+            // Si le point de départ est le même que le point d'arrivée, on ne fait rien
+            if (startX === destX && startY === destY) {
+                console.info("Start cell is the same as the end cell");
+                return;
+            }
+
+            this.removeEntity();
+            this.entity.start = {x: startX, y: startY};
+            this.addEntity(cellElement);
 
         });
 
-        this.#tableElement.addEventListener("mousedown", (event) => {
+        this.tableElement.addEventListener("mousedown", (event) => {
 
             if (event.button === DomGrid.MOUSE_BUTTONS.right) {
 
@@ -120,20 +130,14 @@ export class DomGrid {
                 const cellElement = event.target;
                 const destX = parseInt(cellElement.dataset.x);
                 const destY = parseInt(cellElement.dataset.y);
-                const destCell = this.#grid.getCell(destX, destY);
+                const destCell = this.grid.getCell(destX, destY);
 
-                if (!destCell.isWalkable()) {
+                if (!destCell.walkable) {
                     console.info(`Cell: ${destX}:${destY} is not walkable`);
                     return;
                 }
 
-                const { x: startX, y: startY } = this.#entity.getStart();
-
-                // Si le point de départ n'est pas défini, on ne fait rien
-                if (startX === null || startY === null) {
-                    console.info("Start cell is not defined");
-                    return;
-                }
+                const { x: startX, y: startY } = this.entity.start;
 
                 // Si le point de départ est le même que le point d'arrivée, on ne fait rien
                 if (startX === destX && startY === destY) {
@@ -141,18 +145,18 @@ export class DomGrid {
                     return;
                 }
 
-                this.#removeDestination();
-                this.#entity.setEnd(destX, destY);
-                this.#addDestination(cellElement);
+                this.removeDestination();
+                this.entity.dest = {x: destX, y: destY};
+                this.addDestination(cellElement);
 
             } else if (event.button === DomGrid.MOUSE_BUTTONS.left) {
 
                 // Activation du drag de la table
                 this.canDrag = true;
-    
+
                 // Mise à jour des positions de départ
-                this.clientX = event.clientX - this.#tableElement.offsetLeft;
-                this.clientY = event.clientY - this.#tableElement.offsetTop;
+                this.clientX = event.clientX - this.tableElement.offsetLeft;
+                this.clientY = event.clientY - this.tableElement.offsetTop;
 
             }
 
@@ -179,8 +183,8 @@ export class DomGrid {
                 // Limitation des positions de la table
                 const maxLeft = 0;
                 const maxTop = 0;
-                const minLeft = this.#tableElement.parentElement.clientWidth - this.#tableElement.clientWidth;
-                const minTop = this.#tableElement.parentElement.clientHeight - this.#tableElement.clientHeight;
+                const minLeft = this.tableElement.parentElement.clientWidth - this.tableElement.clientWidth;
+                const minTop = this.tableElement.parentElement.clientHeight - this.tableElement.clientHeight;
 
                 // Calcul de la nouvelle position
                 let left = event.clientX - this.clientX;
@@ -193,12 +197,12 @@ export class DomGrid {
                 top = Math.max(minTop, top);
 
                 // Application de la nouvelle position
-                this.#tableElement.style.left = left + 'px';
-                this.#tableElement.style.top = top + 'px';
+                this.tableElement.style.left = left + 'px';
+                this.tableElement.style.top = top + 'px';
 
                 // Mise à jour des positions de départ
-                this.#clientX = event.clientX - this.#tableElement.offsetLeft;
-                this.#clientY = event.clientY - this.#tableElement.offsetTop;
+                this.clientX = event.clientX - this.tableElement.offsetLeft;
+                this.clientY = event.clientY - this.tableElement.offsetTop;
 
             }
 
@@ -210,18 +214,18 @@ export class DomGrid {
      * 
      * @param {HTMLTableCellElement} cellElement 
      */
-    #addEntity(cellElement) {
+    addEntity(cellElement) {
         const entityElement = document.createElement("div");
         entityElement.classList.add("entity");
         cellElement.append(entityElement);
     }
 
-    #removeEntity() {
+    removeEntity() {
 
-        let { x, y } = this.#entity.getStart();
+        let { x, y } = this.entity.start;
 
         if (x !== null || y !== null) {
-            const cellElement = this.#tableElement.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
+            const cellElement = this.tableElement.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
             cellElement.innerHTML = "";
         }
 
@@ -231,18 +235,18 @@ export class DomGrid {
      * 
      * @param {HTMLTableCellElement} cellElement 
      */
-    #addDestination(cellElement) {
+    addDestination(cellElement) {
         const destinationElement = document.createElement("div");
         destinationElement.classList.add("destination");
         cellElement.append(destinationElement);
     }
 
-    #removeDestination() {
+    removeDestination() {
 
-        let { x, y } = this.#entity.getEnd();
+        let { x, y } = this.entity.dest;
 
         if (x !== null || y !== null) {
-            const cellElement = this.#tableElement.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
+            const cellElement = this.tableElement.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
             cellElement.innerHTML = "";
         }
 

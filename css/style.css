@@ -21,11 +21,6 @@ body {
     bottom: 5px;
 }
 
-button {
-    color: inherit;
-    font-size: inherit;
-}
-
 #root {
     height: 100%;
     overflow: hidden;

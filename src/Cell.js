@@ -1,50 +1,35 @@
 export class Cell {
 
-    /** 
-     * Probability for a cell to be walkable
-     * @type {number} 
-     */
-    static WALKABLE_PROBA = 0.2;
+    /** @type {number}  */
+    static WALKABLE_PROBA = 0.3; // Chance qu'une cellule soit marchable
 
     /** @type {number} */
-    #x;
+    x; // Abscisse
 
     /** @type {number} */
-    #y;
+    y; // Ordonnée
 
     /** @type {number} */
-    #elevation; // Si besoin on fait de la 3D :)
+    z; // Altitude
 
     /** @type {boolean} */
-    #walkable;
+    walkable; // La cellule est elle marchable
 
     /**
      * 
      * @param {number} x 
      * @param {number} y 
+     * @param {number} z
+     * @param {boolean} walkable
      */
-    constructor(x, y) {
-        this.#x = x;
-        this.#y = y;
-        this.#elevation = 0;
-        this.#walkable = this.#randomizeWalkable();
+    constructor(x, y, z = 0, walkable = null) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.walkable = walkable ?? this.randomizeWalkable();
     }
 
-    /** @returns {number} */
-    getX() {
-        return this.#x;
-    }
-
-    /** @returns {number} */
-    getY() {
-        return this.#y;
-    }
-
-    isWalkable() {
-        return this.#walkable;
-    }
-
-    #randomizeWalkable() {
+    randomizeWalkable() {
         return Math.random() > Cell.WALKABLE_PROBA;
     }
 
