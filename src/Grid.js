@@ -31,16 +31,6 @@ export class Grid {
 
     }
 
-    /** @returns {number} */
-    getRows() {
-        return this.rows;
-    }
-
-    /** @returns {number} */
-    getCols() {
-        return this.cols;
-    }
-
     /**
      * 
      * @param {number} x 
@@ -49,11 +39,6 @@ export class Grid {
      */
     getCell(x, y) {
         return this.cells[y][x];
-    }
-
-    /** @returns {Array<Array<Cell>>} */
-    getCells() {
-        return this.cells;
     }
 
     /** @returns {Array<Array<Cell>>} */

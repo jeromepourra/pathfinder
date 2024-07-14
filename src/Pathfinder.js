@@ -86,7 +86,7 @@ export class Pathfinder {
                 const x = current.cell.x + direction.x;
                 const y = current.cell.y + direction.y;
 
-                if (x >= 0 && x < grid.getCols() && y >= 0 && y < grid.getRows()) {
+                if (x >= 0 && x < grid.cols && y >= 0 && y < grid.rows) {
 
                     const key = `${x}:${y}`;
                     const cell = grid.getCell(x, y);

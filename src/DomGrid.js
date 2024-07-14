@@ -52,7 +52,7 @@ export class DomGrid {
      */
     create() {
 
-        this.grid.getCells().forEach((row) => {
+        this.grid.cells.forEach((row) => {
 
             const rowElement = document.createElement("tr");
             this.tableElement.append(rowElement);
