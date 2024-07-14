@@ -13,5 +13,8 @@ const domGrid = new DomGrid(grid, entity);
 
 const startButton = document.querySelector("#findpath");
 startButton.addEventListener("click", () => {
-    new Pathfinder(grid, entity).findPath();
+    const path = Pathfinder.findPath(grid, entity).then((path) => {
+        console.log(path);
+        // domGrid.drawPath(path);
+    });
 });

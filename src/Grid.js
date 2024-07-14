@@ -3,13 +3,13 @@ import { Cell } from "./Cell.js";
 export class Grid {
 
     /** @type {number} */
-    #rows;
+    rows;
 
     /** @type {number} */
-    #cols;
+    cols;
 
     /** @type {Array<Array<Cell>>} */
-    #cells;
+    cells;
 
     /**
      * 
@@ -18,14 +18,14 @@ export class Grid {
      */
     constructor(rows, cols) {
 
-        this.#rows = rows;
-        this.#cols = cols;
-        this.#cells = new Array();
+        this.rows = rows;
+        this.cols = cols;
+        this.cells = new Array();
 
         for (let y = 0; y < rows; y++) {
-            this.#cells.push(new Array());
+            this.cells.push(new Array());
             for (let x = 0; x < cols; x++) {
-                this.#cells[y].push(new Cell(x, y));
+                this.cells[y].push(new Cell(x, y));
             }
         }
 
@@ -33,12 +33,12 @@ export class Grid {
 
     /** @returns {number} */
     getRows() {
-        return this.#rows;
+        return this.rows;
     }
 
     /** @returns {number} */
     getCols() {
-        return this.#cols;
+        return this.cols;
     }
 
     /**
@@ -48,19 +48,19 @@ export class Grid {
      * @returns {Cell}
      */
     getCell(x, y) {
-        return this.#cells[y][x];
+        return this.cells[y][x];
     }
 
     /** @returns {Array<Array<Cell>>} */
     getCells() {
-        return this.#cells;
+        return this.cells;
     }
 
     /** @returns {Array<Array<Cell>>} */
     getWalkableCells() {
-        return this.#cells.map(row => 
+        return this.cells.map(row => 
             row.filter(cell => 
-                cell.isWalkable() === true
+                cell.walkable === true
             )
         );
     }

@@ -1,76 +1,36 @@
 import { Cell } from "./Cell.js";
-import { PathfindingNeighbor } from "./PathfindingNeighbor.js";
 
 export class PathfindingNode {
 
     /** @type {Cell} */
-    #cell; // Current cell
+    cell = null; // Current cell
 
     /** @type {PathfindingNode | null} */
-    #parent; // Parent node
+    parent = null; // Parent node
 
     /** @type {number} */
-    #cost; // Cout de déplacement
+    g; // Cout de déplacement pour la direction
 
     /** @type {number} */
-    #iteration; // Nombre d'itérations depuis le départ
+    v; // Cout de déplacement total
 
     /** @type {number} */
-    #startDist; // Distance from start
+    h; // Cout estimé pour se rendre de la case actuelle à la case d'arrivée
 
     /** @type {number} */
-    #destDist; // Distance to dest
+    f; // Cout total
 
     /** @type {number} */
-    #direction;
+    d; // Direction
 
-    /**
-     * 
-     * @param {Cell} cell 
-     * @param {PathfindingNode | null} parent
-     * @param {number} direction
-     * @param {number} iteration
-     * @param {number} startDist 
-     * @param {number} destDist 
-     */
-    constructor(cell, parent, direction, iteration, startDist, destDist) {
-        this.#cell = cell;
-        this.#parent = parent;
-        this.#direction = direction;
-        this.#iteration = iteration;
-        this.#startDist = startDist;
-        this.#destDist = destDist;
-        this.#cost = this.#startDist + this.#destDist;
-    }
-
-    /** @returns {Cell} */
-    getCell() {
-        return this.#cell;
-    }
-
-    /** @returns {PathfindingNode | null} */
-    getParent() {
-        return this.#parent;
-    }
-
-    /** @returns {number} */
-    getCost() {
-        return this.#cost;
-    }
-
-    /** @returns {number} */
-    getIteration() {
-        return this.#iteration;
-    }
-
-    /** @returns {number} */
-    getStartDist() {
-        return this.#startDist;
-    }
-
-    /** @returns {number} */
-    getDestDist() {
-        return this.#destDist;
+    constructor() {
+        this.cell = null;
+        this.parent = null;
+        this.g = null;
+        this.v = null;
+        this.h = null;
+        this.f = null;
+        this.d = null;
     }
 
 }
