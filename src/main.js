@@ -8,7 +8,6 @@ const cols = 100;
 
 const grid = new Grid(rows, cols);
 const entity = new Entity(grid);
-
 const domGrid = new DomGrid(grid, entity);
 
 const startButton = document.querySelector("#findpath");

@@ -23,20 +23,12 @@ export class Pathfinder {
         { x: -1, y: 0, dir: 7, cost: 1 }
     ];
 
-    static RUN = false;
-
     /**
      * 
      * @param {Grid} grid 
      * @param {Entity} entity 
      */
     static async findPath(grid, entity) {
-
-        if (Pathfinder.RUN) {
-            return;
-        }
-
-        Pathfinder.RUN = true;
 
         const start = entity.start;
         const dest = entity.dest;
@@ -143,7 +135,6 @@ export class Pathfinder {
 
         }
 
-        Pathfinder.RUN = false;
         return null;
 
     }
@@ -177,7 +168,6 @@ export class Pathfinder {
             await this.wait(1);
         }
 
-        Pathfinder.RUN = false;
         return nodes.reverse();
 
     }
