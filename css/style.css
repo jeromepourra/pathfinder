@@ -84,6 +84,15 @@ table {
     border-radius: 10px;
 }
 
+.grabbable {
+    cursor: grab;
+}
+
+.grabbable:active {
+    cursor: grabbing;
+    user-select: none;
+}
+
 td {
     width: 20px;
     height: 20px;
@@ -98,11 +107,17 @@ td.unwalkable {
     background-color: var(--color-primary);
 }
 
-.grabbable {
-    cursor: grab;
+div.entity, div.destination {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+
 }
 
-.grabbable:active {
-    cursor: grabbing;
-    user-select: none;
+div.entity {
+    background-color: red;
+}
+
+div.destination {
+    background-color: green;
 }

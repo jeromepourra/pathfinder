@@ -7,16 +7,16 @@ export class Cell {
     static WALKABLE_PROBA = 0.2;
 
     /** @type {number} */
-    x;
+    #x;
 
     /** @type {number} */
-    y;
+    #y;
 
     /** @type {number} */
-    elevation;
+    #elevation; // Si besoin on fait de la 3D :)
 
     /** @type {boolean} */
-    walkable;
+    #walkable;
 
     /**
      * 
@@ -24,23 +24,27 @@ export class Cell {
      * @param {number} y 
      */
     constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.elevation = 0;
-        this.walkable = this.randomWalkable();
+        this.#x = x;
+        this.#y = y;
+        this.#elevation = 0;
+        this.#walkable = this.#randomizeWalkable();
     }
 
     /** @returns {number} */
     getX() {
-        return this.x;
+        return this.#x;
     }
 
     /** @returns {number} */
     getY() {
-        return this.y;
+        return this.#y;
     }
 
-    randomWalkable() {
+    isWalkable() {
+        return this.#walkable;
+    }
+
+    #randomizeWalkable() {
         return Math.random() > Cell.WALKABLE_PROBA;
     }
 
