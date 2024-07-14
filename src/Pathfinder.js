@@ -2,6 +2,7 @@ import { Grid } from "./Grid.js";
 import { Cell } from "./Cell.js";
 import { Entity } from "./Entity.js";
 import { PathfindingNode } from "./PathfindingNode.js";
+import { PathfindingNeighbor } from "./PathfindingNeighbor.js";
 
 export class Pathfinder {
 
@@ -43,6 +44,7 @@ export class Pathfinder {
         const startNode = new PathfindingNode(
             startCell,
             null,
+            null,
             0,
             0,
             this.#distance(startCell, destCell)
@@ -77,11 +79,11 @@ export class Pathfinder {
             const neighbors = this.#getNeighbors(current);
             neighbors.forEach(async (neighbor) => {
 
-                let nX = neighbor.getX();
-                let nY = neighbor.getY();
+                let nX = neighbor.cell.getX();
+                let nY = neighbor.cell.getY();
                 let nKey = `${nX}:${nY}`;
 
-                if (!neighbor.isWalkable()) {
+                if (!neighbor.cell.isWalkable()) {
                     return;
                 }
 
@@ -90,23 +92,24 @@ export class Pathfinder {
                     return;
                 }
 
-                // if (nKey in bl && bl[nKey].getCost() > current.getCost()) {
-                //     alert("ici");
-                //     wl[nKey] = bl[nKey];
-                //     delete bl[nKey];
-                //     return;
-                // }
+                if (nKey in bl && bl[nKey].getCost() > current.getCost()) {
+                    // alert("ici");
+                    wl[nKey] = bl[nKey];
+                    delete bl[nKey];
+                    return;
+                }
 
                 if (!(nKey in wl)) {
                     const nNode = new PathfindingNode(
-                        neighbor,
+                        neighbor.cell,
                         current,
+                        neighbor.direction,
                         current.getIteration() + 1,
-                        this.#distance(neighbor, startCell),
-                        this.#distance(neighbor, destCell)
+                        this.#distance(neighbor.cell, startCell),
+                        this.#distance(neighbor.cell, destCell)
                     );
                     wl[nKey] = nNode;
-                    this.#debugAddWl(neighbor);
+                    this.#debugAddWl(neighbor.cell);
                 }
 
                 if (Pathfinder.DEBUG) {
@@ -130,11 +133,11 @@ export class Pathfinder {
     /**
      * 
      * @param {PathfindingNode} current 
-     * @returns 
+     * @returns {Array<PathfindingNeighbor>}
      */
     #getNeighbors(current) {
 
-        /** @type {Array<Cell>} */
+        /** @type {Array<PathfindingNeighbor>} */
         const neighbors = new Array();
 
         const directions = [
@@ -148,14 +151,19 @@ export class Pathfinder {
             { x: 1, y: 1 }
         ];
 
-        directions.forEach((direction) => {
+        directions.forEach((direction, index) => {
 
             const cell = current.getCell();
             const x = cell.getX() + direction.x;
             const y = cell.getY() + direction.y;
 
             if (x >= 0 && x < this.#grid.getCols() && y >= 0 && y < this.#grid.getRows()) {
-                neighbors.push(this.#grid.getCell(x, y));
+                neighbors.push(
+                    new PathfindingNeighbor(
+                        this.#grid.getCell(x, y),
+                        index
+                    )
+                );
             }
 
         });
@@ -186,7 +194,7 @@ export class Pathfinder {
         this.#debugAddWalk(node.getCell());
         await new Promise((resolve) => setTimeout(resolve, 1));
 
-        while(node.getParent() !== null) {
+        while (node.getParent() !== null) {
             node = node.getParent();
             nodes.push(node);
             this.#debugAddWalk(node.getCell());

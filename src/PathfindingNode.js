@@ -1,4 +1,5 @@
 import { Cell } from "./Cell.js";
+import { PathfindingNeighbor } from "./PathfindingNeighbor.js";
 
 export class PathfindingNode {
 
@@ -20,17 +21,22 @@ export class PathfindingNode {
     /** @type {number} */
     #destDist; // Distance to dest
 
+    /** @type {number} */
+    #direction;
+
     /**
      * 
      * @param {Cell} cell 
      * @param {PathfindingNode | null} parent
+     * @param {number} direction
      * @param {number} iteration
      * @param {number} startDist 
      * @param {number} destDist 
      */
-    constructor(cell, parent, iteration, startDist, destDist) {
+    constructor(cell, parent, direction, iteration, startDist, destDist) {
         this.#cell = cell;
         this.#parent = parent;
+        this.#direction = direction;
         this.#iteration = iteration;
         this.#startDist = startDist;
         this.#destDist = destDist;
