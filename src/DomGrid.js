@@ -1,54 +1,67 @@
+import { Entity } from "./Entity.js";
 import { Grid } from "./Grid.js";
 
 export class DomGrid {
 
+    /** @type {{[key: string]: number}} */
+    static MOUSE_BUTTONS = {
+        left: 0,
+        wheel: 1,
+        right: 2
+    };
+
     /** @type {Grid} */
-    grid;
+    #grid;
+
+    /** @type {Entity} */
+    #entity;
 
     /** @type {HTMLTableElement} */
-    tableElement;
+    #tableElement;
 
     /** @type {number} */
-    clientX;
+    #clientX;
 
     /** @type {number} */
-    clientY;
+    #clientY;
 
     /** @type {boolean} */
-    canDrag;
+    #canDrag;
 
     /** @type {boolean} */
-    hasDrag;
+    #hasDrag;
 
     /**
      * 
      * @param {Grid} grid 
+     * @param {Entity} entity
      */
-    constructor(grid) {
-        this.grid = grid;
-        this.tableElement = document.querySelector("#grid");
-        this.clientX = 0;
-        this.clientY = 0;
-        this.canDrag = false;
-        this.hasDrag = false;
-        this.create();
+    constructor(grid, entity) {
+        this.#grid = grid;
+        this.#entity = entity;
+        this.#tableElement = document.querySelector("#grid");
+        this.#clientX = 0;
+        this.#clientY = 0;
+        this.#canDrag = false;
+        this.#hasDrag = false;
+        this.#create();
     }
 
     /**
      * @returns {void}
      */
-    create() {
+    #create() {
 
-        this.grid.getCells().forEach((row) => {
+        this.#grid.getCells().forEach((row) => {
 
             const rowElement = document.createElement("tr");
-            this.tableElement.append(rowElement);
+            this.#tableElement.append(rowElement);
 
             row.forEach((cell) => {
 
                 const cellElement = document.createElement("td");
 
-                if (cell.walkable) {
+                if (cell.isWalkable()) {
                     cellElement.classList.add("walkable");
                 } else {
                     cellElement.classList.add("unwalkable");
@@ -62,28 +75,93 @@ export class DomGrid {
 
         });
 
-        this.listenEvents();
+        this.#listenEvents();
 
     }
 
-    listenEvents() {
+    #listenEvents() {
 
-        this.tableElement.addEventListener("mousedown", (event) => {
+        // Désactivation du menu contextuel du navigateur
+        document.addEventListener("contextmenu", (event) => {
+            event.preventDefault();
+        });
 
-            // Activation du drag de la table
-            this.canDrag = true;
+        // Double click pour définir le point de départ
+        this.#tableElement.addEventListener("dblclick", (event) => {
 
-            // Mise à jour des positions de départ
-            this.clientX = event.clientX - this.tableElement.offsetLeft;
-            this.clientY = event.clientY - this.tableElement.offsetTop;
+            if (event.target instanceof HTMLTableCellElement) {
+
+                const cellElement = event.target;
+                const cellX = parseInt(cellElement.dataset.x);
+                const cellY = parseInt(cellElement.dataset.y);
+                const cell = this.#grid.getCell(cellX, cellY);
+
+                if (cell.isWalkable()) {
+                    this.#removeEntity();
+                    this.#entity.setStart(cellX, cellY);
+                    this.#addEntity(cellElement);
+                } else {
+                    console.info(`Cell: ${cellX}:${cellY} is not walkable`);
+                }
+
+            }
 
         });
 
-        window.addEventListener("mouseup", () => {
+        this.#tableElement.addEventListener("mousedown", (event) => {
 
-            if (!this.hasDrag) {
-                
-                // L'event est considéré comme un click
+            if (event.button === DomGrid.MOUSE_BUTTONS.right) {
+
+                if (!(event.target instanceof HTMLTableCellElement)) {
+                    console.info("Right click must be on a cell");
+                    return;
+                }
+
+                const cellElement = event.target;
+                const destX = parseInt(cellElement.dataset.x);
+                const destY = parseInt(cellElement.dataset.y);
+                const destCell = this.#grid.getCell(destX, destY);
+
+                if (!destCell.isWalkable()) {
+                    console.info(`Cell: ${destX}:${destY} is not walkable`);
+                    return;
+                }
+
+                const { x: startX, y: startY } = this.#entity.getStart();
+
+                // Si le point de départ n'est pas défini, on ne fait rien
+                if (startX === null || startY === null) {
+                    console.info("Start cell is not defined");
+                    return;
+                }
+
+                // Si le point de départ est le même que le point d'arrivée, on ne fait rien
+                if (startX === destX && startY === destY) {
+                    console.info("Start cell is the same as the end cell");
+                    return;
+                }
+
+                this.#removeDestination();
+                this.#entity.setEnd(destX, destY);
+                this.#addDestination(cellElement);
+
+            } else if (event.button === DomGrid.MOUSE_BUTTONS.left) {
+
+                // Activation du drag de la table
+                this.canDrag = true;
+    
+                // Mise à jour des positions de départ
+                this.clientX = event.clientX - this.#tableElement.offsetLeft;
+                this.clientY = event.clientY - this.#tableElement.offsetTop;
+
+            }
+
+        });
+
+        window.addEventListener("mouseup", (event) => {
+
+            if (event.button !== DomGrid.MOUSE_BUTTONS.left) {
+                return; // On ne fait rien si ce n'est pas un click gauche
             }
 
             this.canDrag = false;
@@ -101,8 +179,8 @@ export class DomGrid {
                 // Limitation des positions de la table
                 const maxLeft = 0;
                 const maxTop = 0;
-                const minLeft = this.tableElement.parentElement.clientWidth - this.tableElement.clientWidth;
-                const minTop = this.tableElement.parentElement.clientHeight - this.tableElement.clientHeight;
+                const minLeft = this.#tableElement.parentElement.clientWidth - this.#tableElement.clientWidth;
+                const minTop = this.#tableElement.parentElement.clientHeight - this.#tableElement.clientHeight;
 
                 // Calcul de la nouvelle position
                 let left = event.clientX - this.clientX;
@@ -115,16 +193,58 @@ export class DomGrid {
                 top = Math.max(minTop, top);
 
                 // Application de la nouvelle position
-                this.tableElement.style.left = left + 'px';
-                this.tableElement.style.top = top + 'px';
+                this.#tableElement.style.left = left + 'px';
+                this.#tableElement.style.top = top + 'px';
 
                 // Mise à jour des positions de départ
-                this.clientX = event.clientX - this.tableElement.offsetLeft;
-                this.clientY = event.clientY - this.tableElement.offsetTop;
+                this.#clientX = event.clientX - this.#tableElement.offsetLeft;
+                this.#clientY = event.clientY - this.#tableElement.offsetTop;
 
             }
 
         });
+
+    }
+
+    /**
+     * 
+     * @param {HTMLTableCellElement} cellElement 
+     */
+    #addEntity(cellElement) {
+        const entityElement = document.createElement("div");
+        entityElement.classList.add("entity");
+        cellElement.append(entityElement);
+    }
+
+    #removeEntity() {
+
+        let { x, y } = this.#entity.getStart();
+
+        if (x !== null || y !== null) {
+            const cellElement = this.#tableElement.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
+            cellElement.innerHTML = "";
+        }
+
+    }
+
+    /**
+     * 
+     * @param {HTMLTableCellElement} cellElement 
+     */
+    #addDestination(cellElement) {
+        const destinationElement = document.createElement("div");
+        destinationElement.classList.add("destination");
+        cellElement.append(destinationElement);
+    }
+
+    #removeDestination() {
+
+        let { x, y } = this.#entity.getEnd();
+
+        if (x !== null || y !== null) {
+            const cellElement = this.#tableElement.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
+            cellElement.innerHTML = "";
+        }
 
     }
 
