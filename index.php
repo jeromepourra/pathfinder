@@ -14,6 +14,7 @@
     <div id="root">
         <header>
             <h1>Pathfinder</h1>
+            <button id="findpath">Findpath</button>
         </header>
         <main>
             <div id="view">
