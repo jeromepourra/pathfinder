@@ -24,18 +24,17 @@ export class PathfindingNode {
      * 
      * @param {Cell} cell 
      * @param {PathfindingNode | null} parent
-     * @param {number} cost 
      * @param {number} iteration
      * @param {number} startDist 
      * @param {number} destDist 
      */
-    constructor(cell, parent, cost, iteration, startDist, destDist) {
+    constructor(cell, parent, iteration, startDist, destDist) {
         this.#cell = cell;
         this.#parent = parent;
-        this.#cost = cost;
         this.#iteration = iteration;
         this.#startDist = startDist;
         this.#destDist = destDist;
+        this.#cost = this.#startDist + this.#destDist;
     }
 
     /** @returns {Cell} */

@@ -6,6 +6,7 @@ import { PathfindingNode } from "./PathfindingNode.js";
 export class Pathfinder {
 
     static MAX_ITERATIONS = 1000;
+    static DEBUG = true;
 
     /** @type {Grid} */
     #grid;
@@ -23,7 +24,8 @@ export class Pathfinder {
         this.#entity = entity;
     }
 
-    findPath() {
+    // Need async to debug the pathfinding
+    async findPath() {
 
         const start = this.#entity.getStart();
         const dest = this.#entity.getDest();
@@ -41,7 +43,6 @@ export class Pathfinder {
         const startNode = new PathfindingNode(
             startCell,
             null,
-            0,
             0,
             0,
             this.#distance(startCell, destCell)
@@ -66,13 +67,15 @@ export class Pathfinder {
             delete wl[key];
             bl[key] = current;
 
+            this.#debugRemoveWl(current.getCell());
+            this.#debugAddBl(current.getCell());
+
             if (current.getCell() === destCell) {
-                alert("END !");
-                return this.#reconstructPath(startCell, destCell);
+                return this.#reconstructPath(current);
             }
 
             const neighbors = this.#getNeighbors(current);
-            neighbors.forEach((neighbor) => {
+            neighbors.forEach(async (neighbor) => {
 
                 let nX = neighbor.getX();
                 let nY = neighbor.getY();
@@ -87,30 +90,36 @@ export class Pathfinder {
                     return;
                 }
 
-                // if (nKey in bl && bl[nKey].getCost() <= current.getCost()) {
+                // if (nKey in bl && bl[nKey].getCost() > current.getCost()) {
+                //     alert("ici");
                 //     wl[nKey] = bl[nKey];
-                //     delete wl[nKey];
-                //     console.log(wl[nKey]);
+                //     delete bl[nKey];
                 //     return;
                 // }
 
-                if (!(nKey in bl)) {
+                if (!(nKey in wl)) {
                     const nNode = new PathfindingNode(
                         neighbor,
                         current,
-                        current.getCost() + 1, // Caluler un meilleur cout...
                         current.getIteration() + 1,
                         this.#distance(neighbor, startCell),
                         this.#distance(neighbor, destCell)
                     );
                     wl[nKey] = nNode;
+                    this.#debugAddWl(neighbor);
+                }
+
+                if (Pathfinder.DEBUG) {
+                    await new Promise((resolve) => setTimeout(resolve, 1));
                 }
 
             });
 
-            console.log("Wl:", wl, "Bl:", bl);
+            if (Pathfinder.DEBUG) {
+                await new Promise((resolve) => setTimeout(resolve, 1));
+            }
 
-            alert("ICI !");
+            console.log("Wl:", wl, "Bl:", bl);
 
         }
 
@@ -165,8 +174,90 @@ export class Pathfinder {
         return Math.sqrt(Math.pow(Math.abs(cell1.getX() - cell2.getX()), 2) + Math.pow(Math.abs(cell1.getY() - cell2.getY()), 2));
     }
 
-    #reconstructPath(startCell, destCell) {
-        throw new Error("Method not implemented.");
+    /**
+     * 
+     * @param {PathfindingNode} node
+     */
+    async #reconstructPath(node) {
+
+        /** @type {Array<PathfindingNode>} */
+        const nodes = new Array();
+        nodes.push(node);
+        this.#debugAddWalk(node.getCell());
+        await new Promise((resolve) => setTimeout(resolve, 1));
+
+        while(node.getParent() !== null) {
+            node = node.getParent();
+            nodes.push(node);
+            this.#debugAddWalk(node.getCell());
+            await new Promise((resolve) => setTimeout(resolve, 1));
+        }
+
+    }
+
+    /**
+     * @param {Cell} cell 
+     */
+    #debugAddWl(cell) {
+        if (Pathfinder.DEBUG) {
+            const x = cell.getX();
+            const y = cell.getY();
+            /** @type {HTMLTableCellElement} */
+            const cellElement = document.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
+            cellElement.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
+        }
+    }
+
+    /**
+     * @param {Cell} cell 
+     */
+    #debugRemoveWl(cell) {
+        if (Pathfinder.DEBUG) {
+            const x = cell.getX();
+            const y = cell.getY();
+            /** @type {HTMLTableCellElement} */
+            const cellElement = document.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
+            cellElement.style.backgroundColor = "white";
+        }
+    }
+
+    /**
+     * @param {Cell} cell 
+     */
+    #debugAddBl(cell) {
+        if (Pathfinder.DEBUG) {
+            const x = cell.getX();
+            const y = cell.getY();
+            /** @type {HTMLTableCellElement} */
+            const cellElement = document.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
+            cellElement.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+        }
+    }
+
+    /**
+     * @param {Cell} cell 
+     */
+    #debugRemoveBl(cell) {
+        if (Pathfinder.DEBUG) {
+            const x = cell.getX();
+            const y = cell.getY();
+            /** @type {HTMLTableCellElement} */
+            const cellElement = document.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
+            cellElement.style.backgroundColor = "white";
+        }
+    }
+
+    /**
+     * @param {Cell} cell 
+     */
+    #debugAddWalk(cell) {
+        if (Pathfinder.DEBUG) {
+            const x = cell.getX();
+            const y = cell.getY();
+            /** @type {HTMLTableCellElement} */
+            const cellElement = document.querySelector(`td[data-x="${x}"][data-y="${y}"]`);
+            cellElement.style.backgroundColor = "rgba(0, 0, 255, 0.5)";
+        }
     }
 
 }
