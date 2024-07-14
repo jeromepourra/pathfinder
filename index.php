@@ -17,7 +17,7 @@
         </header>
         <main>
             <div id="view">
-                <table></table>
+                <table id="grid" class="grabbable"></table>
             </div>
         </main>
         <footer>
@@ -25,8 +25,8 @@
         </footer>
     </div>
 
-    <script src="node_modules/jquery/dist/jquery.min.js"></script>
-    <script type="module" src="./js/main.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script type="module" src="./src/main.js"></script>
 
 </body>
 
